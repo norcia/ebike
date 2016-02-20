@@ -4,8 +4,8 @@ import matplotlib
 import csv
 import math
 
-gravity = 9.8
 
+gravity = 9.8
 
 class Tandem:
     def __init__(self, human_output, watt_hours, mass):
@@ -114,45 +114,30 @@ class Optimizer:
         ax2.plot(times, powers) 
         plt.show()
 
+    def CreateMap(self, path_to_file):
+        with open(path_to_file) as f:
+            reader = csv.reader(f, delimiter="\t")
+            d = list(reader)
+        meters_per_deg_lat = 111000
+        meters_per_deg_long = 85000
+        
+        dist = 0
+        dist_data = []
+        alt_data = []
+        for i in range(len(d)-1):
+            horizontal_meters = (float(d[i+1][1]) - float(d[i][1])) * meters_per_deg_lat
+            vertical_meters = (float(d[i+1][2]) - float(d[i][2])) * meters_per_deg_long
+            dist += ( math.sqrt(horizontal_meters ** 2 + vertical_meters ** 2) )
+            dist_data.append(dist)
+            alt_data.append(float(d[i][3]) - 1845)
+        self.map = Map(dist_data, alt_data)
 
-
-
-
-distance_data = [0.0, 50000, 100000.0]
-altitude_data = [0.0, 500.0, 1000.0]
-
-
-# dummy_map = Map(distance_data, altitude_data)
 
 tandem = Tandem(350.0, 1000.0, 190.0)
-
 optimizer = Optimizer(tandem)
 
-
-
-with open('/Users/nathan/Documents/death_ride.txt') as f:
-    reader = csv.reader(f, delimiter="\t")
-    d = list(reader)
-meters_per_deg_lat = 111000
-meters_per_deg_long = 85000
-
-dist = 0
-dist_data = []
-alt_data = []
-for i in range(len(d)-1):
-    horizontal_meters = (float(d[i+1][1]) - float(d[i][1])) * meters_per_deg_lat
-    vertical_meters = (float(d[i+1][2]) - float(d[i][2])) * meters_per_deg_long
-    dist += ( math.sqrt(horizontal_meters ** 2 + vertical_meters ** 2) )
-    dist_data.append(dist)
-    alt_data.append(float(d[i][3]) - 1845)
-
-death_ride = Map(dist_data, alt_data)
-#plt.plot(dist_data, alt_data)
-#plt.show()
-
-print tandem.GetAcceleration(0)
-
-optimizer.RunSimulation(death_ride)
+optimizer.CreateMap('death_ride.txt')
+optimizer.RunSimulation(optimizer.map)
 
 
 
